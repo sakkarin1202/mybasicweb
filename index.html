@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registration Form</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="form-container">
+            <h2>User Registration</h2>
+            <form id="registrationForm" action="/register" method="POST">
+                <div class="form-group">
+                    <label for="name">Name:</label>
+                    <input type="text" id="name" name="name" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="gender">Gender:</label>
+                    <select id="gender" name="gender" required>
+                        <option value="">Select Gender</option>
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email:</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="country">Country:</label>
+                    <select id="country" name="country" required>
+                        <option value="">Select Country</option>
+                        <option value="thailand">Thailand</option>
+                        <option value="usa">United States</option>
+                        <option value="uk">United Kingdom</option>
+                        <option value="japan">Japan</option>
+                        <option value="china">China</option>
+                        <option value="south-korea">South Korea</option>
+                        <option value="singapore">Singapore</option>
+                        <option value="malaysia">Malaysia</option>
+                        <option value="vietnam">Vietnam</option>
+                        <option value="philippines">Philippines</option>
+                        <option value="indonesia">Indonesia</option>
+                        <option value="australia">Australia</option>
+                        <option value="canada">Canada</option>
+                        <option value="germany">Germany</option>
+                        <option value="france">France</option>
+                        <option value="india">India</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="submit-btn">Register</button>
+            </form>
+
+            <div id="message" class="message" style="display: none;"></div>
+        </div>
+
+        <div class="users-list">
+            <h3>Registered Users</h3>
+            <div id="usersList"></div>
+            <button onclick="loadUsers()" class="refresh-btn">Refresh Users</button>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('registrationForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const data = Object.fromEntries(formData);
+            
+            try {
+                const response = await fetch('/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.text();
+                const messageDiv = document.getElementById('message');
+                
+                if (response.ok) {
+                    messageDiv.style.display = 'block';
+                    messageDiv.style.color = 'green';
+                    messageDiv.textContent = 'Registration successful!';
+                    this.reset();
+                    loadUsers(); // Refresh the users list
+                } else {
+                    messageDiv.style.display = 'block';
+                    messageDiv.style.color = 'red';
+                    messageDiv.textContent = 'Registration failed: ' + result;
+                }
+            } catch (error) {
+                const messageDiv = document.getElementById('message');
+                messageDiv.style.display = 'block';
+                messageDiv.style.color = 'red';
+                messageDiv.textContent = 'Error: ' + error.message;
+            }
+        });
+
+        async function loadUsers() {
+            try {
+                const response = await fetch('/users');
+                const users = await response.json();
+                
+                const usersListDiv = document.getElementById('usersList');
+                if (users.length === 0) {
+                    usersListDiv.innerHTML = '<p>No users registered yet.</p>';
+                } else {
+                    usersListDiv.innerHTML = users.map(user => `
+                        <div class="user-card">
+                            <strong>${user.name}</strong><br>
+                            Gender: ${user.gender}<br>
+                            Email: ${user.email}<br>
+                            Country: ${user.country}<br>
+                            <small>Registered: ${new Date(user.created_at).toLocaleString()}</small>
+                        </div>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error('Error loading users:', error);
+            }
+        }
+
+        // Load users when page loads
+        window.addEventListener('load', loadUsers);
+    </script>
+</body>
+</html>
